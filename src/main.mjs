@@ -1,19 +1,29 @@
-import { PlaywrightCrawler, log } from 'crawlee';
+import { Dataset, PlaywrightCrawler, log, purgeDefaultStorages } from 'crawlee';
 import { router } from './routes.mjs';
 
-// This is better set with CRAWLEE_LOG_LEVEL env var
-// or a configuration option. This is just for show 
+// Show debug logs
 log.setLevel(log.LEVELS.DEBUG);
-
 log.debug('Setting up crawler.');
+
+
+// This command deletes the 'storage' folder for you before starting
+await purgeDefaultStorages();
+
+
 const crawler = new PlaywrightCrawler({
-    // Instead of the long requestHandler with
-    // if clauses we provide a router instance.
     requestHandler: router,
+    // maxRequestsPerCrawl: 20,
+
 });
+
+log.info('Starting crawl...');
 
 await crawler.run(['https://warehouse-theme-metal.myshopify.com/collections']);
 
 
+const dataset = await Dataset.open();
+await dataset.exportToCSV('results.csv');
 
-    // maxRequestsPerCrawl: 20,
+log.info('Crawl finished.');
+
+

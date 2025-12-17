@@ -1,16 +1,17 @@
 import { createPlaywrightRouter, Dataset } from 'crawlee';
 
-// createPlaywrightRouter() is only a helper to get better
-// intellisense and typings. You can use Router.create() too.
 export const router = createPlaywrightRouter();
 
-// This replaces the request.label === DETAIL branch of the if clause.
+
+
 router.addHandler('DETAIL', async ({ request, page, log }) => {
     log.debug(`Extracting data: ${request.url}`);
+
     const urlPart = request.url.split('/').slice(-1); // ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
-    const manufacturer = urlPart[0].split('-')[0]; // 'sennheiser'
+    const manufacturer = urlPart[0].split('-')[0];    // 'sennheiser'
 
     const title = await page.locator('.product-meta h1').textContent();
+    
     const sku = await page
         .locator('span.product-meta__sku-number')
         .textContent();
@@ -44,9 +45,15 @@ router.addHandler('DETAIL', async ({ request, page, log }) => {
         availableInStock: inStock,
     };
 
+
+    log.info(`✅ PRODUCT SCRAPED: ${title}`);
+
     log.debug(`Saving data: ${request.url}`);
-    await Dataset.pushData(results);
+
+    await Dataset.pushData(results);          // default dataset
 });
+
+
 
 router.addHandler('CATEGORY', async ({ page, enqueueLinks, request, log }) => {
     log.debug(`Enqueueing pagination for: ${request.url}`);
@@ -56,29 +63,36 @@ router.addHandler('CATEGORY', async ({ page, enqueueLinks, request, log }) => {
     await page.waitForSelector('.product-item > a');
     await enqueueLinks({
         selector: '.product-item > a',
-        label: 'DETAIL', // <= note the different label
+        label: 'DETAIL',           // <= note the different label
     });
 
     // Now we need to find the "Next" button and enqueue the next page of results (if it exists)
+    // ab hume next button dhundhna hai or uske links enqueue krne hai 
     const nextButton = await page.$('a.pagination__next');
     if (nextButton) {
         await enqueueLinks({
             selector: 'a.pagination__next',
-            label: 'CATEGORY', // <= note the same label
+            label: 'CATEGORY',    // <= note the same label
         });
     }
 });
 
+
+
 // This is a fallback route which will handle the start URL
 // as well as the LIST labeled URLs.
+
 router.addDefaultHandler(async ({ request, page, enqueueLinks, log }) => {
     log.debug(`Enqueueing categories from page: ${request.url}`);
     // This means we're on the start page, with no label.
     // On this page, we just want to enqueue all the category pages.
 
     await page.waitForSelector('.collection-block-item');
+    // await page.waitForSelector('a[href^="/collections/"]');
+
     await enqueueLinks({
         selector: '.collection-block-item',
+        // selector: 'a[href^="/collections/"]',
         label: 'CATEGORY',
     });
 });
