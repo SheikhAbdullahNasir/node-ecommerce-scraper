@@ -7,8 +7,8 @@ Tech Stack: Node.js, Crawlee, Playwright.
 
 How to Run:
 
-npm install
-npm start
+-npm install
+-npm start
 
 If you're looking for examples or want to learn more visit:
 
