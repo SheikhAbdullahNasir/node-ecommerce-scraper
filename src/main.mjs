@@ -12,7 +12,7 @@ await purgeDefaultStorages();
 
 const crawler = new PlaywrightCrawler({
     requestHandler: router,
-    // maxRequestsPerCrawl: 20,
+    maxRequestsPerCrawl: 100,
 
 });
 
