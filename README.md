@@ -1,6 +1,6 @@
 # Node.js E-Commerce Scraper
 
-This template is a production ready boilerplate for developing with `PlaywrightCrawler`. Use this to bootstrap your projects using the most up-to-date code.
+A scalable web scraper built with Crawlee and Playwright. It recursively navigates a demo e-commerce site, handles pagination, extracts structured product data (SKU, Price, Stock), and exports results to CSV.
 
 If you're looking for examples or want to learn more visit:
 
