@@ -5,12 +5,7 @@ A scalable web scraper built with Crawlee and Playwright. It recursively navigat
 
 Tech Stack: Node.js, Crawlee, Playwright.
 
-How to Run:
 
-Bash
-
-npm install
-npm start
 
 If you're looking for examples or want to learn more visit:
 
