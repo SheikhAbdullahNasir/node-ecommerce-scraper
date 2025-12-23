@@ -7,6 +7,8 @@ Tech Stack: Node.js, Crawlee, Playwright.
 
 How to Run:
 
+Bash
+
 npm install
 npm start
 
