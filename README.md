@@ -11,5 +11,5 @@ How to Run:
 
 If you're looking for examples or want to learn more visit:
 
-- [Documentation](https://crawlee.dev/js/api/playwright-crawler/class/PlaywrightCrawler)
-- [Examples](https://crawlee.dev/js/docs/examples/playwright-crawler)
+<!-- - [Documentation](https://crawlee.dev/js/api/playwright-crawler/class/PlaywrightCrawler)
+- [Examples](https://crawlee.dev/js/docs/examples/playwright-crawler) -->
