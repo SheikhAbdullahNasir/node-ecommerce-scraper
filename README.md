@@ -1,4 +1,4 @@
-# Crawlee + PlaywrightCrawler + JavaScript project
+# Node.js E-Commerce Scraper
 
 This template is a production ready boilerplate for developing with `PlaywrightCrawler`. Use this to bootstrap your projects using the most up-to-date code.
 
