@@ -45,4 +45,4 @@ This bot recursively navigates a demo e-commerce site ("Warehouse Store"), handl
     *The crawler is configured to run visibly (`headless: false`) for demonstration purposes. You can change this in `src/main.mjs`.*
 
 3.  **View Results:**
-    Check the `storage/datasets/default` folder or the generated `results.csv` file.
+    Check the `storage` folder or the generated `results.csv` file.
