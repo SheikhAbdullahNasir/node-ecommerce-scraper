@@ -4,54 +4,99 @@ export const router = createPlaywrightRouter();
 
 
 
+
+
 router.addHandler('DETAIL', async ({ request, page, log }) => {
     log.debug(`Extracting data: ${request.url}`);
 
-    const urlPart = request.url.split('/').slice(-1); // ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
-    const manufacturer = urlPart[0].split('-')[0];    // 'sennheiser'
+    // --- STRATEGY 1: TRYING HIDDEN JSON (Best for Variants) ---
 
-    const title = await page.locator('.product-meta h1').textContent();
-    
-    const sku = await page
-        .locator('span.product-meta__sku-number')
-        .textContent();
+    // 1. Get the "Hidden" JSON directly from the browser's memory
+    // We use page.evaluate() to run code inside the browser console
+    const productData = await page.evaluate(() => {
+        // This 'window.meta.product' is specific to Shopify themes. 
+        // If the site was different, we might look for a <script> tag instead.
+        return window.meta ? window.meta.product : null;
+    });
 
-    const priceElement = page
-        .locator('span.price')
-        .filter({
-            hasText: '$',
-        })
-        .first();
+    if (productData) {
+        log.info(`✅ Found HIDDEN JSON for: ${productData.title}`);
 
-    const currentPriceString = await priceElement.textContent();
-    const rawPrice = currentPriceString.split('$')[1];
-    const price = Number(rawPrice.replaceAll(',', ''));
+        // 2. Loop through the variants found in the JSON
+        // We are creating ONE row for every variant (size/color combo)
+        for (const variant of productData.variants) {
+            
+            // Clean up the price (Shopify sends 9300 for $93.00)
+            const price = variant.price / 100; 
 
-    const inStockElement = page
-        .locator('span.product-form__inventory')
-        .filter({
-            hasText: 'In stock',
-        })
-        .first();
+            const result = {
+                url: request.url,
+                manufacturer: productData.vendor,
+                title: productData.title,
+                // These are the specific details for THIS variant
+                variantName: variant.name,   // e.g. "Sony Walkman - Black / 16GB"
+                sku: variant.sku,
+                currentPrice: price,
+                availableInStock: variant.available,
+                option1: variant.option1,    // e.g. "Black"
+                option2: variant.option2,    // e.g. "16GB"
+            };
 
-    const inStock = (await inStockElement.count()) > 0;
+            // Save this specific variant as a row in our CSV
+            await Dataset.pushData(result);
+        }
 
-    const results = {
-        url: request.url,
-        manufacturer,
-        title,
-        sku,
-        currentPrice: price,
-        availableInStock: inStock,
-    };
+    } else {
+        // --- STRATEGY 2: Fallback: If the JSON isn't found, we will use our old UI scraping code here (Backup) ---
+        
+        log.warning('⚠️ Hidden JSON not found, falling back to UI scraping...');
 
 
-    log.info(`✅ PRODUCT SCRAPED: ${title}`);
+        const urlPart = request.url.split('/').slice(-1); // ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
+        const manufacturer = urlPart[0].split('-')[0];    // 'sennheiser'
+        const title = await page.locator('.product-meta h1').textContent();
+        const sku = await page
+            .locator('span.product-meta__sku-number')
+            .textContent();
 
-    log.debug(`Saving data: ${request.url}`);
+        const priceElement = page
+            .locator('span.price')
+            .filter({
+                hasText: '$',
+            })
+            .first();
 
-    await Dataset.pushData(results);          // default dataset
+        const currentPriceString = await priceElement.textContent();
+        const rawPrice = currentPriceString.split('$')[1];
+        const price = Number(rawPrice.replaceAll(',', ''));
+
+        const inStockElement = page
+            .locator('span.product-form__inventory')
+            .filter({
+                hasText: 'In stock',
+            })
+            .first();
+
+        const inStock = (await inStockElement.count()) > 0;
+
+        const results = {
+            url: request.url,
+            manufacturer,
+            title,
+            sku,
+            currentPrice: price,
+            availableInStock: inStock,
+            variantName: 'Default', // Label it default since we missed the variants
+        };
+
+        log.info(`✅ PRODUCT SCRAPED (Visual): ${title}`);
+        log.debug(`Saving data: ${request.url}`);
+
+        await Dataset.pushData(results);          // default dataset
+    }
 });
+
+
 
 
 
@@ -76,6 +121,8 @@ router.addHandler('CATEGORY', async ({ page, enqueueLinks, request, log }) => {
         });
     }
 });
+
+
 
 
 
